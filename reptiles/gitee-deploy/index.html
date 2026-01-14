@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>腾讯视频链接转换</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { color: white; text-align: center; margin-bottom: 30px; font-size: 24px; }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .input-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        input[type="text"]:focus { outline: none; border-color: #667eea; }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .result { margin-top: 20px; display: none; }
+        .result.show { display: block; }
+        .link-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .link-title { font-weight: 600; color: #333; margin-bottom: 8px; }
+        .link-url {
+            word-break: break-all;
+            color: #667eea;
+            font-size: 14px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        .btn-group { display: flex; gap: 8px; margin-top: 10px; }
+        .copy-btn, .open-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .copy-btn { background: #667eea; color: white; }
+        .open-btn { background: #4CAF50; color: white; }
+        .copy-btn:hover { background: #5a6fd6; }
+        .open-btn:hover { background: #45a049; }
+        .error { background: #fee; color: #c00; padding: 16px; border-radius: 10px; }
+        .tips { color: rgba(255,255,255,0.8); text-align: center; font-size: 14px; margin-top: 20px; }
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+        .toast.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="toast" id="toast">已复制到剪贴板</div>
+    <div class="container">
+        <h1>🎬 腾讯视频链接转换</h1>
+        <div class="card">
+            <div class="input-group">
+                <label>视频链接</label>
+                <input type="text" id="url" placeholder="粘贴腾讯视频链接...">
+            </div>
+            <button onclick="convert()">转换链接</button>
+            <div class="result" id="result"></div>
+        </div>
+        <p class="tips">💡 输入腾讯视频链接，获取手机端和电脑端网址<br>纯前端运行，无需服务器</p>
+    </div>
+    <script>
+        function convert() {
+            const url = document.getElementById('url').value.trim();
+            const result = document.getElementById('result');
+            
+            if (!url) {
+                showToast('请输入视频链接');
+                return;
+            }
+            
+            if (!url.includes('qq.com')) {
+                result.innerHTML = '<div class="error">❌ 请输入有效的腾讯视频链接</div>';
+                result.classList.add('show');
+                return;
+            }
+            
+            // 转换链接
+            let pcUrl = url;
+            let mobileUrl = url;
+            
+            if (url.includes('m.v.qq.com')) {
+                pcUrl = url.replace('m.v.qq.com', 'v.qq.com');
+                mobileUrl = url;
+            } else if (url.includes('v.qq.com')) {
+                pcUrl = url;
+                mobileUrl = url.replace('v.qq.com', 'm.v.qq.com');
+            }
+            
+            result.innerHTML = `
+                <div class="link-box">
+                    <div class="link-title">💻 电脑端网址</div>
+                    <div class="link-url" id="pcUrl">${pcUrl}</div>
+                    <div class="btn-group">
+                        <button class="copy-btn" onclick="copyText('${pcUrl}')">复制链接</button>
+                        <button class="open-btn" onclick="window.open('${pcUrl}')">打开链接</button>
+                    </div>
+                </div>
+                <div class="link-box">
+                    <div class="link-title">📱 手机端网址</div>
+                    <div class="link-url" id="mobileUrl">${mobileUrl}</div>
+                    <div class="btn-group">
+                        <button class="copy-btn" onclick="copyText('${mobileUrl}')">复制链接</button>
+                        <button class="open-btn" onclick="window.open('${mobileUrl}')">打开链接</button>
+                    </div>
+                </div>
+            `;
+            result.classList.add('show');
+        }
+        
+        function copyText(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板'));
+            } else {
+                // 兼容旧浏览器
+                const input = document.createElement('input');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('已复制到剪贴板');
+            }
+        }
+        
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        
+        document.getElementById('url').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') convert();
+        });
+    </script>
+</body>
+</html>
